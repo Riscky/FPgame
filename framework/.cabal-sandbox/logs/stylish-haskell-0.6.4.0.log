@@ -1,0 +1,31 @@
+Configuring stylish-haskell-0.6.4.0...
+Building stylish-haskell-0.6.4.0...
+Preprocessing library stylish-haskell-0.6.4.0...
+[ 1 of 16] Compiling Language.Haskell.Stylish.Block ( lib/Language/Haskell/Stylish/Block.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Block.o )
+[ 2 of 16] Compiling Language.Haskell.Stylish.Editor ( lib/Language/Haskell/Stylish/Editor.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Editor.o )
+[ 3 of 16] Compiling Paths_stylish_haskell ( dist/dist-sandbox-a598c72b/build/autogen/Paths_stylish_haskell.hs, dist/dist-sandbox-a598c72b/build/Paths_stylish_haskell.o )
+[ 4 of 16] Compiling Language.Haskell.Stylish.Step ( lib/Language/Haskell/Stylish/Step.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Step.o )
+[ 5 of 16] Compiling Language.Haskell.Stylish.Step.Tabs ( lib/Language/Haskell/Stylish/Step/Tabs.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Step/Tabs.o )
+[ 6 of 16] Compiling Language.Haskell.Stylish.Step.TrailingWhitespace ( lib/Language/Haskell/Stylish/Step/TrailingWhitespace.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Step/TrailingWhitespace.o )
+[ 7 of 16] Compiling Language.Haskell.Stylish.Util ( lib/Language/Haskell/Stylish/Util.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Util.o )
+[ 8 of 16] Compiling Language.Haskell.Stylish.Step.Imports ( lib/Language/Haskell/Stylish/Step/Imports.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Step/Imports.o )
+[ 9 of 16] Compiling Language.Haskell.Stylish.Step.LanguagePragmas ( lib/Language/Haskell/Stylish/Step/LanguagePragmas.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Step/LanguagePragmas.o )
+[10 of 16] Compiling Language.Haskell.Stylish.Step.UnicodeSyntax ( lib/Language/Haskell/Stylish/Step/UnicodeSyntax.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Step/UnicodeSyntax.o )
+[11 of 16] Compiling Language.Haskell.Stylish.Align ( lib/Language/Haskell/Stylish/Align.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Align.o )
+[12 of 16] Compiling Language.Haskell.Stylish.Step.SimpleAlign ( lib/Language/Haskell/Stylish/Step/SimpleAlign.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Step/SimpleAlign.o )
+[13 of 16] Compiling Language.Haskell.Stylish.Verbose ( lib/Language/Haskell/Stylish/Verbose.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Verbose.o )
+[14 of 16] Compiling Language.Haskell.Stylish.Config ( lib/Language/Haskell/Stylish/Config.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Config.o )
+[15 of 16] Compiling Language.Haskell.Stylish.Parse ( lib/Language/Haskell/Stylish/Parse.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish/Parse.o )
+[16 of 16] Compiling Language.Haskell.Stylish ( lib/Language/Haskell/Stylish.hs, dist/dist-sandbox-a598c72b/build/Language/Haskell/Stylish.o )
+In-place registering stylish-haskell-0.6.4.0...
+Preprocessing executable 'stylish-haskell' for stylish-haskell-0.6.4.0...
+[1 of 2] Compiling Paths_stylish_haskell ( dist/dist-sandbox-a598c72b/build/autogen/Paths_stylish_haskell.hs, dist/dist-sandbox-a598c72b/build/stylish-haskell/stylish-haskell-tmp/Paths_stylish_haskell.o )
+[2 of 2] Compiling Main             ( src/Main.hs, dist/dist-sandbox-a598c72b/build/stylish-haskell/stylish-haskell-tmp/Main.o )
+Linking dist/dist-sandbox-a598c72b/build/stylish-haskell/stylish-haskell ...
+Creating package registration file:
+/tmp/pkgConf-stylish-haskell-0.6.42147469841438792350.0
+Installing library in
+/home/rick/Projects/FP/A5/framework/.cabal-sandbox/lib/x86_64-linux-ghc-7.10.3/stylish-haskell-0.6.4.0-AlxGmCVmnR9Gv5p9rrdbQQ
+Installing executable(s) in
+/home/rick/Projects/FP/A5/framework/.cabal-sandbox/bin
+Registering stylish-haskell-0.6.4.0...

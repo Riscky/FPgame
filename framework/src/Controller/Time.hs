@@ -5,7 +5,7 @@ module Controller.Time (
     timeHandler
 ) where
 
-import Control.Arrow ((>>>))
+import Control.Arrow ((>>>),(***))
 
 import Data.List
 
@@ -19,18 +19,25 @@ import Model
 -- | Time handling
 
 timeHandler :: Float -> World -> World
-timeHandler time w = w >>= tship >>= tenemies >>= tbullets
-      where (>>=) :: World -> (Float -> World -> World) -> World
-            (>>=) w' f = f time w'
+timeHandler time w  = w >>= tship >>= tenemies >>= tbullets >>= updatet
+      where (>>=)           :: World -> (Float -> World -> World) -> World
+            (>>=)     w' f = f time w'
+            updatet t w'   = w'{timeLastFrame = t}
 
 tship, tenemies, tbullets :: Float -> World -> World
-tship     time w@World{..} = let so = case rotateAction of
-                                        RotateLeft  -> shiporientation - 2
-                                        RotateRight -> shiporientation + 2
-                                        NoRotation  -> shiporientation
+
+tship     time w@World{..} = let (so,sl) = (case rotateAction of
+                                              RotateLeft  -> shiporientation - 2
+                                              RotateRight -> shiporientation + 2
+                                              NoRotation  -> shiporientation,
+                                            update 5 shiporientation shiplocation)
                              in w{shiplocation = sl, shiporientation = so}
-                             where sl = undefined
 
-tenemies  time w = undefined
+tenemies  time w@World{..} = w
 
-tbullets  time w = undefined
+tbullets  time w@World{..} = w
+
+update                :: Float -> Float -> Point -> Point
+update speed dir pos  = let vec = (cos dir', sin dir')
+                        in ((+) (fst vec) *** (+) (snd vec)) pos
+                        where dir' = degToRad dir

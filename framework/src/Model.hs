@@ -18,8 +18,9 @@ data World = World {
         shiplocation     :: Point,
         bullets          :: [Bullet],
         enemies          :: [Enemy],
-        shiporientation  :: Float
-        -- TODO: add more fields here!
+        shiporientation  :: Float,
+        -- Time
+        timeLastFrame    :: Float
     }
 
 data RotateAction   = NoRotation | RotateLeft | RotateRight
@@ -28,5 +29,5 @@ data ShootAction    = Shoot      | DontShoot
 data Bullet         = Bullet Float  Point
 data Enemy          = Enemy         Point
 
-initial :: Int -> World
-initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) [] [] 0
+initial      :: Int -> World
+initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) [] [] 0 0
