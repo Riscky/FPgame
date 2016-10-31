@@ -38,6 +38,6 @@ tenemies  time w@World{..} = w
 tbullets  time w@World{..} = w
 
 update                :: Float -> Float -> Point -> Point
-update speed dir pos  = let vec = (cos dir', sin dir')
+update speed dir pos  = let vec = (- cos dir', sin dir')
                         in ((+) (fst vec) *** (+) (snd vec)) pos
-                        where dir' = degToRad dir
+                        where dir' = degToRad dir + (pi / 2)
