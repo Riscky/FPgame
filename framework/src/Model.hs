@@ -33,8 +33,8 @@ data MovementAction = NoMovement | Thrust
 data ShootAction    = Shoot      | DontShoot
                     deriving (Eq)
 data Bullet         = Bullet Float  Point
-data Enemy          = Enemy         Point
-data Bonus          = Bonus         Point
+newtype Enemy       = Enemy {unEnemy :: Point}
+newtype Bonus       = Bonus {unBonus :: Point}
 
 initial      :: Int -> World
 initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) 0 [] [] [] 0 0 0

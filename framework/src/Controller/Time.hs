@@ -30,22 +30,33 @@ collisionHandler _ = shipcoll . encoll . bonuscoll
 
 shipcoll, encoll, bonuscoll :: World -> World
 
-shipcoll w@World{..} = if dead
+shipcoll  w@World{..} = if dead
                           then initial (fst (random rndGen))
                           else w
                       where dead = any (\(Enemy y) -> boxCollision y shiplocation 20) enemies
 
-encoll    w@World{..} = let enemies' = filter p enemies
-                        in w{enemies = enemies'}
-                      where p (Enemy epos) = not (not (null bullets) &&
-                                                              any (\(Bullet _ bpos) -> boxCollision bpos epos 10) bullets)
+encoll    w@World{..} = let enemies' = map Enemy $ multcoll enemies bullets unEnemy (\(Bullet _ x) -> x) 10
+                        in  w{enemies = enemies'}
 
-bonuscoll w@World{..} = w
+  -- let enemies' = filter p enemies
+  --                       in w{enemies = enemies'}
+  --                     where p (Enemy epos) = not (not (null bullets) &&
+  --                                                             any (\(Bullet _ bpos) -> boxCollision bpos epos 10) bullets)
 
--- multcoll :: [Point] -> [Point] -> Float -> [Point]
--- multcoll as bs dist = filter p as
---                     where p a = not (not (null bs) &&
---                                 any (\b -> boxCollision a b dist) bs)
+bonuscoll w@World{..} = let bonusses' = map Bonus $ multcoll bonusses bullets unBonus (\(Bullet _ x) -> x) 10
+                        in  w{bonusses = bonusses'}
+
+  -- let bonusses' = filter p bonusses
+  --                       in w{bonusses = bonusses'}
+  --                     where p (Bonus pos) = not (not (null bullets) &&
+  --                                                             any (\(Bullet _ bpos) -> boxCollision bpos pos 10) bullets)
+
+multcoll :: [a] -> [b] -> (a -> Point) -> (b -> Point) -> Float -> [Point]
+multcoll as bs fa fb dist = filter p as'
+                          where p a = not (not (null bs') &&
+                                      any (\b -> boxCollision a b dist) bs')
+                                bs' = map fb bs
+                                as' = map fa as
 
 tship, tenemies, tbullets, tshoot, tspawnEnemy, tspawnBonus:: Float -> World -> World
 
