@@ -22,7 +22,10 @@ ship World{..} = uncurry Translate shiplocation .
                   Polygon [(8,0),(0,20),(-8,0)]
 
 dbullets :: [Bullet] -> Picture
-dbullets _ = blank
+dbullets bullets = pictures (map dbullet bullets)
+                 where dbullet (Bullet _ pos) = uncurry Translate pos .
+                                                  Color yellow $
+                                                  Circle 5
 
 denemies :: [Enemy] -> Picture
 denemies _ = blank
