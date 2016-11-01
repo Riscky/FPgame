@@ -19,13 +19,13 @@ import Model
 -- | Time handling
 
 timeHandler :: Float -> World -> World
-timeHandler time w  = w >>= tship >>= tcollision >>= tspawnEnemy >>= tenemies >>= tshoot >>= tbullets >>= updatetime
+timeHandler time w  = w >>= tship >>= tbulletcolllison >>= tcollision >>= tspawnEnemy >>= tenemies >>= tshoot >>= tbullets >>= updatetime
       where (>>=)           :: World -> (Float -> World -> World) -> World
             (>>=)      w' f = f timeslice w'
             updatetime t w' = w'{timeLastFrame = t}
             timeslice       = time - timeLastFrame w
 
-tship, tenemies, tbullets, tshoot, tspawnEnemy, tcollision:: Float -> World -> World
+tship, tenemies, tbullets, tshoot, tspawnEnemy, tcollision, tbulletcolllison:: Float -> World -> World
 
 tship     time w@World{..} = let (so,sl) = (case rotateAction of
                                               RotateLeft  -> shiporientation - 5
@@ -62,8 +62,12 @@ tshoot    time w@World{..} = let bullets' = if shootAction == Shoot
 tcollision time w@World{..} = if dead
                                 then initial 5 -- not a random value, should be changed later
                                 else w
-                            where dead = any (\(Enemy y) -> boxCollison y shiplocation 20) enemies
+                            where dead = any (\(Enemy y) -> boxCollision y shiplocation 20) enemies
 
+tbulletcolllison time w@World{..} = let enemies' = filter p enemies
+                                    in w{enemies = enemies'}
+                                  where p (Enemy epos) = not (not (null bullets) &&
+                                                              any (\(Bullet _ bpos) -> boxCollision bpos epos 5) bullets)
 
 update                :: Float -> Float -> Point -> Point
 update speed dir pos  = let vec = (speed * (- cos dir'), speed * sin dir')
@@ -75,8 +79,8 @@ infixl 6 <+>, <->
 (<+>) a = (+) (fst a) *** (+) (snd a)
 (<->) a = (-) (fst a) *** (-) (snd a)
 
-boxCollison             :: Point -> Point -> Float -> Bool
-boxCollison posa posb x = dot (posa - posb) < x
+boxCollision             :: Point -> Point -> Float -> Bool
+boxCollision posa posb x = dot (posa - posb) < x
 
 normalize       :: Vector -> Vector
 normalize (a,b) = (a/c,b/c)
