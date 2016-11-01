@@ -25,6 +25,7 @@ data World = World {
 
 data RotateAction   = NoRotation | RotateLeft | RotateRight
 data MovementAction = NoMovement | Thrust
+                    deriving (Eq)
 data ShootAction    = Shoot      | DontShoot
                     deriving (Eq)
 data Bullet         = Bullet Float  Point

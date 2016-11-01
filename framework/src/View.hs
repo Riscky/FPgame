@@ -19,13 +19,16 @@ ship :: World -> Picture
 ship World{..} = uncurry Translate shiplocation .
                   Rotate shiporientation .
                   Color green $
-                  Polygon [(8,0),(0,20),(-8,0)]
+                  Polygon [(8,-10),(0,10),(-8,-10)]
 
 dbullets :: [Bullet] -> Picture
 dbullets bullets = pictures (map dbullet bullets)
                  where dbullet (Bullet _ pos) = uncurry Translate pos .
                                                   Color yellow $
-                                                  Circle 5
+                                                  Circle 2
 
 denemies :: [Enemy] -> Picture
-denemies _ = blank
+denemies enemies = pictures (map denemy enemies)
+                 where denemy (Enemy pos) = uncurry Translate pos .
+                                              Color blue $
+                                              Polygon[(10,0),(0,10),(-10,0),(0,-10)]
