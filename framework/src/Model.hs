@@ -14,14 +14,17 @@ data World = World {
         rotateAction     :: RotateAction,
         movementAction   :: MovementAction,
         shootAction      :: ShootAction,
-        -- Moving objects
+        -- ship
         shiplocation     :: Point,
+        shiporientation  :: Float,
+        -- objects
         bullets          :: [Bullet],
         enemies          :: [Enemy],
-        shiporientation  :: Float,
+        bonusses         :: [Bonus],
         -- Time
         timeLastFrame    :: Float,
-        spawnNextEnemy   :: Int
+        spawnNextEnemy   :: Int,
+        spawnNextBonus   :: Int
     }
 
 data RotateAction   = NoRotation | RotateLeft | RotateRight
@@ -31,6 +34,7 @@ data ShootAction    = Shoot      | DontShoot
                     deriving (Eq)
 data Bullet         = Bullet Float  Point
 data Enemy          = Enemy         Point
+data Bonus          = Bonus         Point
 
 initial      :: Int -> World
-initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) [] [] 0 0 0
+initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) 0 [] [] [] 0 0 0
