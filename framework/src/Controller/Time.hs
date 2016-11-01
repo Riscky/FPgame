@@ -41,11 +41,14 @@ tenemies  time w@World{..} = let enemies' = map (\(Enemy e) -> Enemy (update 1.5
                               in w{enemies = enemies'}
                            where dir e = shiplocation <-> e
 
-tspawnEnemy time w@World{..} = let (x, y) = (snd . random . fst $ random w, snd $ random w)
-                                in w{enemies = Enemy (x,y) : enemies}
-                              where random :: World -> (World, Float)
-                                    random w = let (x, g) = randomR (15, 150) rndGen
-                                                in (w{rndGen = g},x)
+tspawnEnemy time w@World{..} = if spawnNextEnemy == 0
+                                then
+                                  let ((g',x), y) = (random . fst $ random rndGen, snd $ random rndGen)
+                                    in w{enemies = Enemy (x,y) : enemies, rndGen = g', spawnNextEnemy = 15}
+                                else w{spawnNextEnemy = spawnNextEnemy - 1}
+                              where random :: StdGen-> (StdGen, Float)
+                                    random g = let (x, g') = randomR (15, 150) g
+                                                in (g',x)
 
 
 tbullets  time w@World{..} = let bullets' = map (\(Bullet dir pos) -> Bullet dir (update 5 dir pos)) bullets

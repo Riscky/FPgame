@@ -20,7 +20,8 @@ data World = World {
         enemies          :: [Enemy],
         shiporientation  :: Float,
         -- Time
-        timeLastFrame    :: Float
+        timeLastFrame    :: Float,
+        spawnNextEnemy   :: Int
     }
 
 data RotateAction   = NoRotation | RotateLeft | RotateRight
@@ -32,4 +33,4 @@ data Bullet         = Bullet Float  Point
 data Enemy          = Enemy         Point
 
 initial      :: Int -> World
-initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) [] [] 0 0
+initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) [] [] 0 0 0
