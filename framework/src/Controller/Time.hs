@@ -28,22 +28,29 @@ timeHandler time w  = w >>= tship >>= collisionHandler >>= tspawnEnemy >>= tspaw
 collisionHandler   :: Float -> World -> World
 collisionHandler _ = shipcoll . encoll . bonuscoll
 
-shipcoll, encoll, bonuscoll :: World -> World
+shipcoll, shipcollEnemy, shipcollBonus,encoll, bonuscoll :: World -> World
 
-shipcoll  w@World{..} = if dead
+shipcoll = shipcollEnemy . shipcollBonus
+shipcollEnemy  w@World{..} = if dead
                           then initial (fst (random rndGen))
                           else w
-                      where dead = any (\(Enemy y) -> boxCollision y shiplocation 20) enemies
+                      where dead = any (\(Enemy y) -> boxCollision y shiplocation 40) enemies
 
-encoll    w@World{..} = let enemies' = map Enemy $ multcoll enemies bullets unEnemy (\(Bullet _ x) -> x) 10
-                        in  w{enemies = enemies'}
+shipcollBonus w@World{..} = if score > 0
+                            then w{multiplier = multiplier + score, bonusses = filter (not . cond) bonusses}
+                            else w
+                          where score = length $ filter cond bonusses
+                                cond = (\(Bonus y) -> boxCollision shiplocation y 40)
+
+encoll    w@World{..} = let enemies' = map Enemy $ multcoll enemies bullets unEnemy (\(Bullet _ x) -> x) 100
+                        in  w{enemies = enemies', score = score + multiplier * (length enemies - length enemies')}
 
   -- let enemies' = filter p enemies
   --                       in w{enemies = enemies'}
   --                     where p (Enemy epos) = not (not (null bullets) &&
   --                                                             any (\(Bullet _ bpos) -> boxCollision bpos epos 10) bullets)
 
-bonuscoll w@World{..} = let bonusses' = map Bonus $ multcoll bonusses bullets unBonus (\(Bullet _ x) -> x) 10
+bonuscoll w@World{..} = let bonusses' = map Bonus $ multcoll bonusses bullets unBonus (\(Bullet _ x) -> x) 90
                         in  w{bonusses = bonusses'}
 
   -- let bonusses' = filter p bonusses
@@ -60,25 +67,27 @@ multcoll as bs fa fb dist = filter p as'
 
 tship, tenemies, tbullets, tshoot, tspawnEnemy, tspawnBonus:: Float -> World -> World
 
-tship     time w@World{..} = let (so,sl) = (case rotateAction of
-                                              RotateLeft  -> shiporientation - 5
-                                              RotateRight -> shiporientation + 5
-                                              NoRotation  -> shiporientation,
+tship     time w@World{..} = let (so,sl) = (shiporientation + ospeed,
                                             update speed shiporientation shiplocation)
-                             in w{shiplocation = sl, shiporientation = so}
+                             in w{shiplocation = sl, shiporientation = so, angularVelocity = ospeed}
                              where speed = if movementAction == NoMovement
-                                            then 2.5
-                                            else 4
+                                            then 250.0 * time
+                                            else 400.0 * time
+                                   ospeed = case rotateAction of
+                                                      RotateLeft  -> (-5) * 10.0 * time + (1.0 - 10.0 * time) *angularVelocity + drag
+                                                      RotateRight -> 5 * 10.0 * time + (1.0 -10.0 * time ) *angularVelocity + drag
+                                                      NoRotation  -> angularVelocity + drag
+                                   drag = if angularVelocity < 0 then 14.0 * time else 14.0 * (-time)
 
-tenemies  time w@World{..} = let enemies' = map (\(Enemy e) -> Enemy (update 1.5 (vecToDegree(dir e)) e)) enemies
+tenemies  time w@World{..} = let enemies' = map (\(Enemy e) -> Enemy (update (150 * time) (vecToDegree(dir e)) e)) enemies
                               in w{enemies = enemies'}
                            where dir e = shiplocation <-> e
 
-tspawnEnemy time w@World{..} = if spawnNextEnemy == 0
+tspawnEnemy time w@World{..} = if spawnNextEnemy - time < 0
                                 then
                                   let (pos, g') = randomPos rndGen
-                                    in w{enemies = Enemy pos : enemies, rndGen = g', spawnNextEnemy = 15}
-                                else w{spawnNextEnemy = spawnNextEnemy - 1}
+                                    in w{enemies = Enemy pos : enemies, rndGen = g', spawnNextEnemy = 0.1}
+                                else w{spawnNextEnemy = spawnNextEnemy - time}
 
 randomPos   :: StdGen -> (Point,StdGen)
 randomPos g = let ((g',x),y) = (random . fst $ random g, snd $ random g)
@@ -96,10 +105,12 @@ tspawnBonus time w@World{..} = if spawnNextBonus == 0
 tbullets  time w@World{..} = let bullets' = map (\(Bullet dir pos) -> Bullet dir (update 5 dir pos)) bullets
                               in w{bullets = bullets'}
 
-tshoot    time w@World{..} = let bullets' = if shootAction == Shoot
+
+tshoot    time w@World{..} = let bullets' =  if cond
                                               then Bullet shiporientation shiplocation : bullets
                                               else bullets
-                             in w{bullets = bullets'}
+                             in w{bullets = bullets', spawnNextBullet =  if cond then 0.05 else spawnNextBullet - time}
+                                    where cond = shootAction == Shoot && spawnNextBullet - time < 0  -- Time based re-firing contr
 
 update                :: Float -> Float -> Point -> Point
 update speed dir pos  = let vec = (speed * (- cos dir'), speed * sin dir')
