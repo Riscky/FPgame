@@ -20,11 +20,13 @@ draw horRes vertRes world@World{..}
 
 
 dship :: World -> Picture
-dship World{..} | dead == False = uncurry Translate shiplocation .
-                                          Rotate shiporientation .
-                                          Color red $
-                                          Polygon [(8,-10),(0,10),(-8,-10)]
+dship World{..} | dead == False = uncurry Translate shiplocation $
+                                            Rotate shiporientation $
+                                            Pictures [ship, window, window']
                 | otherwise     = Blank
+                                  where ship = Color red $ Polygon [(2,-9),(8,-8),(4,-5),(4, 4),(0,10),(-4, 4),(-4,-5),(-8,-8),(-2,-9),(0,-12)]
+                                        window = uncurry Translate (0,2) . Color white $ circleSolid 1.5
+                                        window' =uncurry Translate (0,-4). Color white $ circleSolid 1.5
 
 dscore :: Int -> Float -> Float -> Picture
 dscore s h v = uncurry Translate (h/2 - 124, v/2 - 30) .
