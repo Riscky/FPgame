@@ -44,7 +44,13 @@ data ShootAction    = Shoot      | DontShoot
 data Bullet         = Bullet Float  Point
 newtype Enemy       = Enemy {unEnemy :: Point}
 newtype Bonus       = Bonus {unBonus :: Point}
-data Particle       = Particle Float Point Color Float Float  -- direction, position, color, speed, dying-out time
+data Particle       = Particle {
+                        direction :: Float,
+                        position  :: Point,
+                        color     :: Color,
+                        speed     :: Float,
+                        dietime   :: Float
+                      }
 data Star           = Star           Point       Float        -- position, speed
 
 initial      :: Int -> World

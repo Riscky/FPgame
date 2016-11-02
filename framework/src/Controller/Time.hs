@@ -19,7 +19,7 @@ import Model
 -- | Time handling
 
 timeHandler :: Float -> World -> World
-timeHandler time w  = w >>= tship >>= collisionHandler >>= tspawnEnemy >>= tspawnBonus >>= tenemies >>= tshoot >>= tbullets >>= updatetime
+timeHandler time w  = w >>= engineParticles >>= tparticles >>= tship >>= collisionHandler >>= tspawnEnemy >>= tspawnBonus >>= tenemies >>= tshoot >>= tbullets >>= updatetime
       where (>>=)           :: World -> (Float -> World -> World) -> World
             (>>=)      w' f = f timeslice w'
             updatetime t w' = w'{timeLastFrame = t}
@@ -65,7 +65,7 @@ multcoll as bs fa fb dist = filter p as'
                                 bs' = map fb bs
                                 as' = map fa as
 
-tship, tenemies, tbullets, tshoot, tspawnEnemy, tspawnBonus:: Float -> World -> World
+tship, tenemies, tbullets, tshoot, tspawnEnemy, tspawnBonus, tparticles:: Float -> World -> World
 
 tship     time w@World{..} = let (so,sl) = (shiporientation + ospeed,
                                             update speed shiporientation shiplocation)
@@ -105,7 +105,7 @@ tspawnBonus time w@World{..} = if spawnNextBonus == 0
 
 engineParticles :: Float -> World -> World
 engineParticles time w@World{..}  = w{particles = newparticle : particles, rndGen = g}
-                                        where newparticle = Particle dir shiplocation (greyN 6) 10 (time + 1)
+                                        where newparticle = Particle dir shiplocation (greyN 6) 10 1
                                               (dir,g)     = (-shiporientation + snd random', fst random')
                                               random'     = randomFloat (-10) 10 rndGen
 
@@ -116,8 +116,14 @@ dyingParticles time pos w@World{..}  = w{particles = fst nps ++ particles, rndGe
                                               newparticles g 0 = ([], g)
                                               newparticles g n = (newparticle : fst np, snd np)
                                                                 where np = newparticles g (n - 1)
-                                              (newparticle,g')  = (Particle dir pos red 10 (time + 1), g)
+                                              (newparticle,g')  = (Particle dir pos red 10 1, g)
                                               (g, dir)      = randomFloat 0 360 rndGen
+
+tparticles time w@World{..} = w{particles = particles'}
+                            where particles' = map updatePos $ filter p $ map (\p@Particle{..} -> p{dietime = dietime - time}) particles
+                                  p Particle{..} = dietime > 0
+                                  updatePos p@Particle{..} = p{position = update speed direction position}
+
 
 
 tbullets  time w@World{..} = let bullets' = map (\(Bullet dir pos) -> Bullet dir (update 5 dir pos)) bullets
