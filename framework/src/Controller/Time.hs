@@ -124,7 +124,18 @@ tparticles time w@World{..} = w{particles = particles'}
                                   p Particle{..} = dietime > 0
                                   updatePos p@Particle{..} = p{position = update speed direction position}
 
+-- tspawnStars :: Float -> World -> World
+-- tspawnStars time w@World{..} = if spawnNextStar - time < 0
+--                                 then w{stars', rndGen = g3', spawnNextStar = gen3}
+--                                 else w{spawnNextStar = spawnNextStar - time}
+--                                 where (g1', gen1) = (randomFloat 0.2, 2.6 rndGen)
+--                                       str = Star (-(defaultVerticalResolution/2), gen2) gen1 gen1
+--                                       (g2', gen2) = randomFloat -defaultVerticalResolution/2  defaultVerticalResolution/2  g1'
+--                                       (g3', gen3) = randomFloat 0.5 2.5 g2'
+--                                       stars' = str : stars
 
+tmoveStars :: Float -> World -> World
+tmoveStars time w@World{..} = undefined
 
 tbullets  time w@World{..} = let bullets' = map (\(Bullet dir pos) -> Bullet dir (update 5 dir pos)) bullets
                               in w{bullets = bullets'}

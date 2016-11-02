@@ -15,7 +15,8 @@ draw :: Float -> Float -> World -> Picture
 draw horRes vertRes world@World{..}
     = pictures [translated, static]
       where translated = pictures [dship world, dbullets bullets, denemies enemies, dbonusses bonusses]
-            static = pictures [dscore score horRes vertRes, dmult multiplier horRes vertRes]
+            static = pictures [dscore score horRes vertRes, dmult multiplier horRes vertRes, dstars stars]
+
 
 
 dship :: World -> Picture
@@ -51,3 +52,10 @@ dbonusses bonusses = pictures (map dbonus bonusses)
                     where dbonus (Bonus pos) = uncurry Translate pos .
                                                   Color green $
                                                   circleSolid 8
+
+dstars         :: [Star] -> Picture
+dstars = undefined
+-- dstars stars = pictures (map drawStarAtLocation stars)
+--     where drawStarAtLocation (Star p _ s) = uncurry Translate p .
+--                                             Color white $
+--                                             circleSolid s
