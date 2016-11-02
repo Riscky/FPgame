@@ -13,19 +13,22 @@ import Model
 
 draw :: Float -> Float -> World -> Picture
 draw horizontalResolution verticalResolution world@World{..}
-    = pictures [ship world, dbullets bullets, denemies enemies, dbonusses bonusses]
+    = pictures [dship world, dbullets bullets, denemies enemies, dbonusses bonusses, dscore score]
 
-ship :: World -> Picture
-ship World{..} = uncurry Translate shiplocation .
+dship :: World -> Picture
+dship World{..} = uncurry Translate shiplocation .
                   Rotate shiporientation .
-                  Color green $
+                  Color red $
                   Polygon [(8,-10),(0,10),(-8,-10)]
+
+dscore :: Int -> Picture
+dscore s = uncurry Translate (100, 100) . color white $ Text (show s)
 
 dbullets         :: [Bullet] -> Picture
 dbullets bullets = pictures (map dbullet bullets)
                  where dbullet (Bullet _ pos) = uncurry Translate pos .
                                                   Color yellow $
-                                                  Circle 2
+                                                  circleSolid 4
 
 denemies         :: [Enemy] -> Picture
 denemies enemies = pictures (map denemy enemies)
@@ -37,4 +40,4 @@ dbonusses          :: [Bonus] -> Picture
 dbonusses bonusses = pictures (map dbonus bonusses)
                     where dbonus (Bonus pos) = uncurry Translate pos .
                                                   Color green $
-                                                  Circle 8
+                                                  circleSolid 8
