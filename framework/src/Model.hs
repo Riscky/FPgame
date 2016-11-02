@@ -57,4 +57,4 @@ data Particle       = Particle {
 data Star           = Star           Point       Float        -- position, speed
 
 initial      :: Int -> World
-initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot False (0,0) 0 0 True 1 0 [] [] [] [] [] 0 10.0 0 0 0
+initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot False (0,0) 0 0 False 1 0 [] [] [] [] [] 0 10.0 0 0 0

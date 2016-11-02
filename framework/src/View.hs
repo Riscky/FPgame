@@ -37,7 +37,7 @@ dmult s h v = uncurry Translate (h/2 - 224, v/2 - 30) .
                                     Color white $ Text (show s ++ "x")
 
 ddeadmsg :: Bool -> World -> Picture
-ddeadmsg b w@World{..} = if b then Scale 0.3 0.3 . Color red $ Text ("You have died!" ++ (show continue)) else Blank
+ddeadmsg b w@World{..} = if b then uncurry Translate (-250, 0) . Scale 0.2 0.2 . Color red $ Text "You have died! Press Enter to continue" else Blank
 
 dbullets         :: [Bullet] -> Picture
 dbullets bullets = pictures (map dbullet bullets)
