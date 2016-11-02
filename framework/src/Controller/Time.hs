@@ -119,13 +119,11 @@ engineParticles time w@World{..}  = if not dead then w{particles = newparticle :
                                                        else 4.0
 
 dyingParticles :: Float -> Point -> StdGen -> (StdGen, [Particle])
-dyingParticles time pos rndGen  = newparticles rndGen 100
-                                where newparticles     :: StdGen -> Int -> (StdGen, [Particle])
-                                      newparticles g 0 = (g, [])
-                                      newparticles g n = (fst np, newparticle : snd np)
-                                                        where np = newparticles g (n - 1)
-                                      (newparticle,g') = (Particle dir pos red 10 1, g)
-                                      (g, dir)         = randomFloat 0 360 rndGen
+dyingParticles time pos rndGen = foldr newParticle (rndGen, [])  [0 .. 100]
+                                where
+                                  newParticle _ (g, ps) = (snd $ np g, fst (np g) : ps)
+                                  np g = (Particle (snd $ dir g) pos red 2 0.3, fst $ dir g)
+                                  dir = randomFloat 0 360
 
 tparticles time w@World{..} = w{particles = particles'}
                             where particles' = map updatePos $ filter p $ map (\p@Particle{..} -> p{dietime = dietime - time}) particles
