@@ -15,10 +15,12 @@ data World = World {
         rotateAction     :: RotateAction,
         movementAction   :: MovementAction,
         shootAction      :: ShootAction,
+        continue         :: Bool,
         -- ship
         shiplocation     :: Point,
         shiporientation  :: Float,
         angularVelocity  :: Float,
+        dead             :: Bool,
         -- Score
         multiplier       :: Int,
         score            :: Int,
@@ -55,4 +57,4 @@ data Particle       = Particle {
 data Star           = Star           Point       Float        -- position, speed
 
 initial      :: Int -> World
-initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) 0 0 1 0 [] [] [] [] [] 0 10.0 0 0 0
+initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot False (0,0) 0 0 True 1 0 [] [] [] [] [] 0 10.0 0 0 0

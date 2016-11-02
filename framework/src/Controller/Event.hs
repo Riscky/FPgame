@@ -14,6 +14,10 @@ eventHandler (EventKey (SpecialKey KeyLeft ) Down _ _) world
     = world { rotateAction = RotateLeft }
 eventHandler (EventKey (SpecialKey KeyLeft ) Up   _ _) world
     = world { rotateAction = NoRotation }
+eventHandler (EventKey (SpecialKey KeyEnter ) Up _ _) world
+    = world { continue = False }
+eventHandler (EventKey (SpecialKey KeyEnter ) Down _ _) world
+    = world { continue = True }
 eventHandler (EventKey (SpecialKey KeyRight) Down _ _) world
     = world { rotateAction = RotateRight }
 eventHandler (EventKey (SpecialKey KeyRight) Up   _ _) world
