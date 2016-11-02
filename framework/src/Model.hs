@@ -4,6 +4,7 @@ module Model where
 
 import System.Random
 import Graphics.Gloss.Data.Picture
+import Graphics.Gloss
 
 -- | Game state
 
@@ -25,6 +26,9 @@ data World = World {
         bullets          :: [Bullet],
         enemies          :: [Enemy],
         bonusses         :: [Bonus],
+        -- particles and stars
+        particles        :: [Particle],
+        stars            :: [Star],
         -- Time
         timeLastFrame    :: Float,
         spawnNextEnemy   :: Float,
@@ -40,6 +44,8 @@ data ShootAction    = Shoot      | DontShoot
 data Bullet         = Bullet Float  Point
 newtype Enemy       = Enemy {unEnemy :: Point}
 newtype Bonus       = Bonus {unBonus :: Point}
+data Particle       = Particle Float Point Color Float Float  -- direction, position, color, speed, dying-out time
+data Star           = Star           Point       Float        -- position, speed
 
 initial      :: Int -> World
-initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) 0 0 1 0 [] [] [] 0 10.0 0 0
+initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot (0,0) 0 0 1 0 [] [] [] [] [] 0 10.0 0 0

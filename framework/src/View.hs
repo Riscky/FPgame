@@ -12,8 +12,11 @@ import Model
 -- | Drawing
 
 draw :: Float -> Float -> World -> Picture
-draw horizontalResolution verticalResolution world@World{..}
-    = pictures [dship world, dbullets bullets, denemies enemies, dbonusses bonusses, dscore score]
+draw horRes vertRes world@World{..}
+    = pictures [translated, static]
+      where translated = pictures [dship world, dbullets bullets, denemies enemies, dbonusses bonusses]
+            static = pictures [dscore score horRes vertRes, dmult multiplier horRes vertRes]
+
 
 dship :: World -> Picture
 dship World{..} = uncurry Translate shiplocation .
@@ -21,8 +24,15 @@ dship World{..} = uncurry Translate shiplocation .
                   Color red $
                   Polygon [(8,-10),(0,10),(-8,-10)]
 
-dscore :: Int -> Picture
-dscore s = uncurry Translate (100, 100) . color white $ Text (show s)
+dscore :: Int -> Float -> Float -> Picture
+dscore s h v = uncurry Translate (h/2 - 124, v/2 - 30) .
+                      Scale 0.2 0.2 .
+                      Color white $ Text (show s)
+
+dmult :: Int -> Float -> Float -> Picture
+dmult s h v = uncurry Translate (h/2 - 224, v/2 - 30) .
+                                    Scale 0.2 0.2 .
+                                    Color white $ Text (show s ++ "x")
 
 dbullets         :: [Bullet] -> Picture
 dbullets bullets = pictures (map dbullet bullets)

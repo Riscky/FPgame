@@ -40,7 +40,7 @@ shipcollBonus w@World{..} = if score > 0
                             then w{multiplier = multiplier + score, bonusses = filter (not . cond) bonusses}
                             else w
                           where score = length $ filter cond bonusses
-                                cond = (\(Bonus y) -> boxCollision shiplocation y 40)
+                                cond (Bonus y) = boxCollision shiplocation y 40
 
 encoll    w@World{..} = let enemies' = map Enemy $ multcoll enemies bullets unEnemy (\(Bullet _ x) -> x) 100
                         in  w{enemies = enemies', score = score + multiplier * (length enemies - length enemies')}
@@ -101,6 +101,9 @@ tspawnBonus time w@World{..} = if spawnNextBonus == 0
                                 then let (pos,g') = randomPos rndGen
                                 in w{bonusses = Bonus pos : bonusses, rndGen = g', spawnNextBonus = 150}
                               else w{spawnNextBonus = spawnNextBonus - 1}
+
+spawnEngineParticles :: World -> World
+spawnEngineParticles w@World{..} = w
 
 tbullets  time w@World{..} = let bullets' = map (\(Bullet dir pos) -> Bullet dir (update 5 dir pos)) bullets
                               in w{bullets = bullets'}
