@@ -90,20 +90,35 @@ tspawnEnemy time w@World{..} = if spawnNextEnemy - time < 0
                                 else w{spawnNextEnemy = spawnNextEnemy - time}
 
 randomPos   :: StdGen -> (Point,StdGen)
-randomPos g = let ((g',x),y) = (random . fst $ random g, snd $ random g)
+randomPos g = let ((g',x),y) = (random' . fst $ random' g, snd $ random' g)
               in ((x,y),g')
-              where
-                random :: StdGen-> (StdGen, Float)
-                random g = let (x, g') = randomR (-500, 500) g --coords
-                            in (g',x)
+              where random' = randomFloat (-500) 500
+
+randomFloat :: Float -> Float -> StdGen -> (StdGen, Float)
+randomFloat lo hi g = let (x, g') = randomR (lo, hi) g
+                    in (g',x)
 
 tspawnBonus time w@World{..} = if spawnNextBonus == 0
                                 then let (pos,g') = randomPos rndGen
                                 in w{bonusses = Bonus pos : bonusses, rndGen = g', spawnNextBonus = 150}
                               else w{spawnNextBonus = spawnNextBonus - 1}
 
-spawnEngineParticles :: World -> World
-spawnEngineParticles w@World{..} = w
+engineParticles :: Float -> World -> World
+engineParticles time w@World{..}  = w{particles = newparticle : particles, rndGen = g}
+                                        where newparticle = Particle dir shiplocation (greyN 6) 10 (time + 1)
+                                              (dir,g)     = (-shiporientation + snd random', fst random')
+                                              random'     = randomFloat (-10) 10 rndGen
+
+dyingParticles :: Float -> Point -> World -> World
+dyingParticles time pos w@World{..}  = w{particles = fst nps ++ particles, rndGen = snd nps}
+                                      where   nps                    = newparticles rndGen 100
+                                              newparticles     :: StdGen -> Int -> ([Particle], StdGen)
+                                              newparticles g 0 = ([], g)
+                                              newparticles g n = (newparticle : fst np, snd np)
+                                                                where np = newparticles g (n - 1)
+                                              (newparticle,g')  = (Particle dir pos red 10 (time + 1), g)
+                                              (g, dir)      = randomFloat 0 360 rndGen
+
 
 tbullets  time w@World{..} = let bullets' = map (\(Bullet dir pos) -> Bullet dir (update 5 dir pos)) bullets
                               in w{bullets = bullets'}
