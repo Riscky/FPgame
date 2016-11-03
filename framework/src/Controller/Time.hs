@@ -131,8 +131,8 @@ tspawnEnemy time w@World{..} = if spawnNextEnemy - time < 0 && not dead
 randomPos   :: StdGen -> (Point,StdGen)
 randomPos g = let ((g',x),y) = (hor $ fst $ vert g, snd $ vert g)
               in ((x,y),g')
-            where hor  = randomFloat (-defaultHorizontalResolution / 2) defaultHorizontalResolution
-                  vert = randomFloat (-defaultVerticalResolution / 2)   defaultVerticalResolution
+            where hor  = randomFloat (-defaultHorizontalResolution / 2) (defaultHorizontalResolution / 2)
+                  vert = randomFloat (-defaultVerticalResolution   / 2) (defaultVerticalResolution   / 2)
 
 randomFloat :: Float -> Float -> StdGen -> (StdGen, Float)
 randomFloat lo hi g = let (x, g') = randomR (lo, hi) g

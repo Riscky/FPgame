@@ -13,9 +13,9 @@ import Model
 
 draw :: Float -> Float -> World -> Picture
 draw horRes vertRes world@World{..}
-    = pictures [translated, static]
+    = pictures [static, translated]
       where translated = pictures [dship world, dbullets bullets, denemies enemies, dbonusses bonusses, dparticle particles ]
-            static = pictures [dscore score horRes vertRes, dmult multiplier horRes vertRes, dstars stars, ddeadmsg dead world]
+            static = pictures [dscore score horRes vertRes, dmult multiplier horRes vertRes, dstars stars, dmoon, ddeadmsg dead world]
 
 
 
@@ -37,6 +37,21 @@ dmult :: Int -> Float -> Float -> Picture
 dmult s h v = uncurry Translate (h/2 - 224, v/2 - 30) .
                                     Scale 0.2 0.2 .
                                     Color white $ Text (show s ++ "x")
+
+dmoon :: Picture
+dmoon = uncurry Translate (120, 60) $ Pictures [ele1, ele2, arcs, Pictures craters]
+     where ele1 = Color (greyN 0.10) $ circleSolid 100
+           ele2 = Color (makeColor 1   0   1   0.1) $ circleSolid 100
+           arcs = Pictures $ map (arc') [1..7]
+           arc' offset = Color (makeColor 0.7 0   1   0.25) $ thickArc (70+ 10*offset) (250-10*offset) (100-offset) (offset)
+           craters = [crater (10, 7) 5,
+                      crater (-30, -25) 7,
+                      crater (50, -60) 10,
+                      crater (-30, 60) 4]
+           crater :: Point -> Float -> Picture
+           crater pos size = uncurry Translate pos $ Pictures [Color (makeColor 0.5 0 0.7 0.1) $ circleSolid size, Rotate 180 . Color (makeColor 0.7 0 1 0.8) $ arc 70 250 size]
+
+
 
 ddeadmsg :: Bool -> World -> Picture
 ddeadmsg b w@World{..} = if b
