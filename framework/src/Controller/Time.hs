@@ -18,7 +18,7 @@ import Model
 
 import Config
 
--- | Time handling
+-- Time handling
 
 timeHandler        :: Float -> World -> World
 timeHandler time w = w  >>= engineParticles   >>= tparticles      >>= tship
@@ -31,79 +31,127 @@ timeHandler time w = w  >>= engineParticles   >>= tparticles      >>= tship
                          updatetime t w' = w'{timeLastFrame = t}
                          timeslice = time - timeLastFrame w
 
+-- Collision handling
 
 collisionHandler   :: Float -> World -> World
-collisionHandler _ = shipcoll . encoll . bonuscoll
+collisionHandler _ = shipcollBonus . shipcollEnemy . encoll . bonuscoll
 
-shipcoll,shipcollEnemy, shipcollBonus,encoll, bonuscoll :: World -> World
+shipcollEnemy, shipcollBonus, encoll, bonuscoll :: World -> World
 
-shipcoll = shipcollBonus . shipcollEnemy
-
-shipcollEnemy w@World{..} = if dead'
-                              then w{dead = True, particles = snd deadparticles ++ particles, rndGen = fst deadparticles}
+shipcollEnemy w@World{..} = if dead'  -- Spawn particles on dead, set dead = True to stop rendering of ship
+                              then w{ dead = True,
+                                      particles = snd deadparticles ++ particles,
+                                      rndGen = fst deadparticles}
                               else w
                           where dead'         = not dead && any (\(Enemy y) -> boxCollision y shiplocation 40) enemies
                                 deadparticles = dyingParticles shiplocation red rndGen
 
 shipcollBonus w@World{..} = if score > 0
-                              then w{multiplier = multiplier + score, bonusses = filter (not . cond) bonusses}
+                              then w{ multiplier  = multiplier + score,
+                                      bonusses    = filter (not . cond) bonusses}
                               else w
-                          where score           = length $ filter cond bonusses
-                                cond (Bonus y)  = boxCollision shiplocation y 140
+                          where score             = length $ filter cond bonusses
+                                cond (Bonus y)    = boxCollision shiplocation y 140
 
 encoll w@World{..}  = let enemies'        = map Enemy multcoll
                       in  w{enemies       = enemies',
                             score         = score + multiplier * (length enemies - length enemies'),
                             particles     = snd ps ++ particles,
                             rndGen        = fst ps}
-                    where multcoll        = filter (not . p) es'
-                          p a             = not (null bs') &&
+                    where multcoll        = filter (not . cond) es'
+                          cond a          = not (null bs') &&
                                             any (\b -> boxCollision a b 100) bs'
                           es'             = map unEnemy enemies
                           bs'             = map (\(Bullet _ x) -> x) bullets
-                          ps              = foldr (\pos (g, ps') -> ins (dyingParticles pos blue g) ps') (rndGen, []) $ filter p es'
+                          ps              = foldr (\pos (g, ps') -> ins (dyingParticles pos blue g) ps') (rndGen, []) $ filter cond es'
                           ins (a,ps) ps'  = (a,ps ++ ps')
 
-bonuscoll w@World{..} = let bonusses'   = map Bonus coll
-                        in  w{bonusses  = bonusses',
-                              particles = snd ps ++ particles,
-                              rndGen    = fst ps}
+bonuscoll w@World{..} = let bonusses'     = map Bonus coll
+                        in  w{bonusses    = bonusses',
+                              particles   = snd ps ++ particles,
+                              rndGen      = fst ps}
                       where
-                          coll            = filter (not. p) bonusses'
-                          p a             = not (null bullets') &&
+                          coll            = filter (not . cond) bonusses'
+                          cond a          = not (null bullets') &&
                                             any (\b -> boxCollision a b 90) bullets'
                           bullets'        = map (\(Bullet _ x) -> x)  bullets
                           bonusses'       = map unBonus               bonusses
-                          ps              = foldr (\pos (g, ps') -> ins (dyingParticles pos green g) ps') (rndGen, []) $ filter p bonusses'
+                          ps              = foldr (\pos (g, ps') -> ins (dyingParticles pos green g) ps') (rndGen, []) $ filter cond bonusses'
                           ins (a,ps) ps'  = (a,ps ++ ps')
 
-tship, tenemies, tbullets, tshoot, tspawnEnemy, tspawnBonus, tparticles, engineParticles, tAliveUpdate:: Float -> World -> World
+-- Spawning
+
+tspawnEnemy, tspawnBonus, tspawnStars, tshoot :: Float -> World -> World
+
+tspawnEnemy time w@World{..} = if spawnNextEnemy - time < 0 && not dead
+                                then
+                                  let (pos, g')       = randomPos rndGen
+                                  in w{ enemies         = Enemy pos : enemies,
+                                        rndGen          = g',
+                                        spawnNextEnemy  = 3.0 / (1.0 + timeAlive)}
+                                else w{spawnNextEnemy = spawnNextEnemy - time}
+
+tspawnBonus time w@World{..} = if spawnNextBonus == 0 && not dead
+                                then
+                                  let (pos,g')        = randomPos rndGen
+                                  in w{ bonusses        = Bonus pos : bonusses,
+                                        rndGen          = g',
+                                        spawnNextBonus  = 150}
+                              else w{spawnNextBonus   = spawnNextBonus - 1}
+
+tspawnStars time w@World{..} = if spawnNextStar - time < 0
+                                then w{ stars         = stars',
+                                        rndGen        = g3',
+                                        spawnNextStar = gen3}
+                                else w{spawnNextStar  = spawnNextStar - time}
+                              where (g1', gen1) = randomFloat 0.2 3.0 rndGen
+                                    str         = Star (negate defaultHorizontalResolution/2 , gen2) gen1
+                                    (g2', gen2) = randomFloat (negate defaultVerticalResolution /2) (1.5*defaultVerticalResolution) g1'
+                                    (g3', gen3) = randomFloat 0 0.1 g2'
+                                    stars'      = str : stars
+
+
+tshoot time w@World{..} = let bullets' =  if cond
+                                              then Bullet shiporientation shiplocation : bullets
+                                              else bullets
+                             in w{bullets = bullets', spawnNextBullet =  if cond then 0.05 else spawnNextBullet - time}
+                                    where cond = shootAction == Shoot && spawnNextBullet - time < 0 && not dead -- Time based re-firing contr
+
+-- Particle spawning
+
+engineParticles                   :: Float -> World -> World
+engineParticles time w@World{..}  = if not dead then w{particles = newparticle : particles, rndGen = g} else w
+                                        where newparticle = Particle dir (update 10 dir shiplocation) (greyN 6) shps 0.35
+                                              (dir,g)     = (shiporientation + snd random' + 180.0, fst random')
+                                              random'     = randomFloat (-10) 10 rndGen
+                                              shps = if movementAction == NoMovement
+                                                       then 2.5
+                                                       else 4.0
+
+dyingParticles :: Point -> Color -> StdGen -> (StdGen, [Particle])
+dyingParticles pos color rndGen = foldr newParticle (rndGen, [])  [0 .. 10]
+                                where
+                                  newParticle _ (g, ps) = (snd $ np g, fst (np g) : ps)
+                                  np g = (Particle (snd $ dir g) pos color 1 0.5, fst $ dir g)
+                                  dir = randomFloat 0 360
+
+-- lifecycle managment
+
+respawnChecker, tAliveUpdate :: Float -> World -> World
 
 respawnChecker _ w@World{..} =  if dead && continue
-                                  then (\w -> w{stars = stars}) . initial $ truncate $ snd $ randomFloat 0 100000 rndGen
+                                  then  (\w -> w{stars = stars}) .
+                                        initial $ truncate $ snd $
+                                        randomFloat 0 100000 rndGen
                                   else w
 
 tAliveUpdate time w@World{..} = if not dead
                                   then w{timeAlive = timeAlive + time}
                                   else w
 
-boundaryCleanup :: Float -> World -> World
-boundaryCleanup _ w@World{..} = w{shiplocation = checkShip $ checkShip shiplocation, particles = particles', stars = stars', bullets = bullets'}
-                            where checkShip :: Point -> Point
-                                  checkShip p  | fst p < - dhr = (-dhr, snd p)
-                                               | fst p >   dhr = ( dhr, snd p)
-                                               | snd p < - dvr = (fst p, -dvr)
-                                               | snd p >   dvr = (fst p,  dvr)
-                                               | otherwise     = p
-                                  particles' = filter (not . (\Particle{..}   -> checkUpLeft position || checkDownRight position )) particles
-                                  bullets'   = filter (not . (\(Bullet _ poz) -> checkUpLeft poz      || checkDownRight poz      )) bullets
-                                  stars'     = filter (not . (\(Star poz _)   ->                         checkDownRight poz      )) stars
-                                  checkUpLeft    p = fst p < -dhr ||
-                                                     snd p >  dvr
-                                  checkDownRight p = fst p >  dhr ||
-                                                     snd p < -dvr
-                                  dhr               = defaultHorizontalResolution / 2
-                                  dvr               = defaultVerticalResolution   / 2
+-- Movement
+
+tship, tenemies, tmoveStars, tparticles, tbullets, boundaryCleanup :: Float -> World -> World
 
 tship  time w@World{..} | not dead = let (so,sl) = (shiporientation + ospeed,
                                                           update speed shiporientation shiplocation)
@@ -122,11 +170,40 @@ tenemies  time w@World{..} = let enemies' = map (\(Enemy e) -> Enemy (update (15
                               in w{enemies = enemies'}
                            where dir e = shiplocation <-> e
 
-tspawnEnemy time w@World{..} = if spawnNextEnemy - time < 0 && not dead
-                                then
-                                  let (pos, g') = randomPos rndGen
-                                    in w{enemies = Enemy pos : enemies, rndGen = g', spawnNextEnemy = 3.0 / (1.0 + timeAlive)}
-                                else w{spawnNextEnemy = spawnNextEnemy - time}
+tmoveStars time w@World{..} = let stars' = map (\(Star p s) -> Star (update s 116.57 p) s) stars
+                              in w{stars = stars'}
+
+tparticles time w@World{..} = w{particles = particles'}
+                            where particles' = map updatePos $ filter p $ map (\p@Particle{..} -> p{dietime = dietime - time}) particles
+                                  p Particle{..} = dietime > 0
+                                  updatePos p@Particle{..} = p{position = update speed direction position}
+
+
+tbullets  time w@World{..} = let bullets' = map (\(Bullet dir pos) -> Bullet dir (update 5 dir pos)) bullets
+                              in w{bullets = bullets'}
+
+boundaryCleanup _ w@World{..} = w{shiplocation  = checkShipVer $ checkShipHor shiplocation,
+                                  particles     = particles',
+                                  stars         = stars',
+                                  bullets       = bullets'}
+                            where checkShipHor p   | fst p < - dhr = (-dhr, snd p)
+                                                   | fst p >   dhr = ( dhr, snd p)
+                                                   | otherwise     = p
+                                  checkShipVer p   | snd p < - dvr = (fst p, -dvr)
+                                                   | snd p >   dvr = (fst p,  dvr)
+                                                   | otherwise     = p
+                                  particles'       = filter (not . (\Particle{..}   -> checkUpLeft position || checkDownRight position )) particles
+                                  bullets'         = filter (not . (\(Bullet _ poz) -> checkUpLeft poz      || checkDownRight poz      )) bullets
+                                  stars'           = filter (not . (\(Star poz _)   ->                         checkDownRight poz      )) stars
+                                  checkUpLeft    p = fst p < -dhr ||
+                                                     snd p >  dvr
+                                  checkDownRight p = fst p >  dhr ||
+                                                     snd p < -dvr
+                                  dhr              = defaultHorizontalResolution / 2
+                                  dvr              = defaultVerticalResolution   / 2
+
+
+-- random generator functions
 
 randomPos   :: StdGen -> (Point,StdGen)
 randomPos g = let ((g',x),y) = (hor $ fst $ vert g, snd $ vert g)
@@ -138,63 +215,13 @@ randomFloat :: Float -> Float -> StdGen -> (StdGen, Float)
 randomFloat lo hi g = let (x, g') = randomR (lo, hi) g
                     in (g',x)
 
-tspawnBonus time w@World{..} = if spawnNextBonus == 0 && not dead
-                                then let (pos,g') = randomPos rndGen
-                                in w{bonusses = Bonus pos : bonusses, rndGen = g', spawnNextBonus = 150}
-                              else w{spawnNextBonus = spawnNextBonus - 1}
+--vector math
 
-engineParticles time w@World{..}  = if not dead then w{particles = newparticle : particles, rndGen = g} else w
-                                        where newparticle = Particle dir (update 10 dir shiplocation) (greyN 6) shps 0.35
-                                              (dir,g)     = (shiporientation + snd random' + 180.0, fst random')
-                                              random'     = randomFloat (-10) 10 rndGen
-                                              shps = if movementAction == NoMovement
-                                                       then 2.5
-                                                       else 4.0
-
-dyingParticles :: Point -> Color -> StdGen -> (StdGen, [Particle])
-dyingParticles pos color rndGen = foldr newParticle (rndGen, [])  [0 .. 10]
-                                where
-                                  newParticle _ (g, ps) = (snd $ np g, fst (np g) : ps)
-                                  np g = (Particle (snd $ dir g) pos color 1 0.5, fst $ dir g)
-                                  dir = randomFloat 0 360
-
-tparticles time w@World{..} = w{particles = particles'}
-                            where particles' = map updatePos $ filter p $ map (\p@Particle{..} -> p{dietime = dietime - time}) particles
-                                  p Particle{..} = dietime > 0
-                                  updatePos p@Particle{..} = p{position = update speed direction position}
-
-tspawnStars :: Float -> World -> World
-tspawnStars time w@World{..} = if spawnNextStar - time < 0
-                                then w{stars = stars', rndGen = g3', spawnNextStar = gen3}
-                                else w{spawnNextStar = spawnNextStar - time}
-                              where (g1', gen1) = randomFloat 0.2 3.0 rndGen
-                                    str = Star (negate defaultHorizontalResolution/2 , gen2) gen1
-                                    (g2', gen2) = randomFloat (negate defaultVerticalResolution /2) (1.5*defaultVerticalResolution) g1'
-                                    (g3', gen3) = randomFloat 0 0.1 g2'
-                                    stars' = str : stars
-
-tmoveStars :: Float -> World -> World
-tmoveStars time w@World{..} = let stars' = map (\(Star p s) -> Star (update s 116.57 p) s) stars
-                               in w{stars = stars'}
-
-
-tbullets  time w@World{..} = let bullets' = map (\(Bullet dir pos) -> Bullet dir (update 5 dir pos)) bullets
-                              in w{bullets = bullets'}
-
-
-tshoot    time w@World{..} = let bullets' =  if cond
-                                              then Bullet shiporientation shiplocation : bullets
-                                              else bullets
-                             in w{bullets = bullets', spawnNextBullet =  if cond then 0.05 else spawnNextBullet - time}
-                                    where cond = shootAction == Shoot && spawnNextBullet - time < 0 && not dead -- Time based re-firing contr
-
-update                :: Float -> Float -> Point -> Point
+update                :: Float -> Float -> Point -> Point -- update a point with a polar vector
 update speed dir pos  = let vec = (speed * (- cos dir'), speed * sin dir')
                         in vec <+> pos
                         where dir' = degToRad dir + (pi / 2)
 
-
---vector math
 infixl 6 <+>, <->
 (<+>) a = (+) (fst a) *** (+) (snd a)
 (<->) a = (-) (fst a) *** (-) (snd a)
