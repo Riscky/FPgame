@@ -20,13 +20,13 @@ draw horRes vertRes world@World{..}
 
 
 dship :: World -> Picture
-dship World{..} | dead == False = uncurry Translate shiplocation $
-                                            Rotate shiporientation $
-                                            Pictures [ship, window, window']
-                | otherwise     = Blank
-                                  where ship = Color red $ Polygon [(2,-9),(8,-8),(4,-5),(4, 4),(0,10),(-4, 4),(-4,-5),(-8,-8),(-2,-9),(0,-12)]
-                                        window = uncurry Translate (0,2) . Color white $ circleSolid 1.5
-                                        window' =uncurry Translate (0,-4). Color white $ circleSolid 1.5
+dship World{..} | not dead  = uncurry Translate shiplocation $
+                                        Rotate shiporientation $
+                                        Pictures [ship, window, window']
+                | otherwise = Blank
+                            where ship = Color red $ Polygon [(2,-9),(8,-8),(4,-5),(4, 4),(0,10),(-4, 4),(-4,-5),(-8,-8),(-2,-9),(0,-12)]
+                                  window = uncurry Translate (0,2) . Color white $ circleSolid 1.5
+                                  window' =uncurry Translate (0,-4). Color white $ circleSolid 1.5
 
 dscore :: Int -> Float -> Float -> Picture
 dscore s h v = uncurry Translate (h/2 - 124, v/2 - 30) .
@@ -39,7 +39,11 @@ dmult s h v = uncurry Translate (h/2 - 224, v/2 - 30) .
                                     Color white $ Text (show s ++ "x")
 
 ddeadmsg :: Bool -> World -> Picture
-ddeadmsg b w@World{..} = if b then uncurry Translate (-250, 0) . Scale 0.2 0.2 . Color red $ Text "You have died! Press Enter to continue" else Blank
+ddeadmsg b w@World{..} = if b
+                          then Pictures [base, time]
+                          else Blank
+                       where  base = uncurry Translate (-250, 0)   . Scale 0.2 0.2 . Color red $ Text "You have died! Press Enter to continue"
+                              time = uncurry Translate (-20, -30) . Scale 0.2 0.2 . Color red $ Text $ "You lived for " ++ show (truncate timeAlive) ++ " seconds"
 
 dbullets         :: [Bullet] -> Picture
 dbullets bullets = pictures (map dbullet bullets)

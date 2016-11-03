@@ -24,6 +24,7 @@ data World = World {
         -- Score
         multiplier       :: Int,
         score            :: Int,
+        timeAlive        :: Float,
         -- objects
         bullets          :: [Bullet],
         enemies          :: [Enemy],
@@ -57,4 +58,4 @@ data Particle       = Particle {
 data Star           = Star           Point       Float        -- position, speed
 
 initial      :: Int -> World
-initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot False (0,0) 0 0 False 1 0 [] [] [] [] [] 0 10.0 0 0 0
+initial seed = World (mkStdGen seed) NoRotation NoMovement DontShoot False (0,0) 0 0 False 1 0 0 [] [] [] [] [] 0 0 0 0 0
